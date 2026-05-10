@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ケーキでピッタリ！</title>
+
+  <style>
+    body {
+      font-family: 'Hiragino Maru Gothic ProN', 'Meiryo', sans-serif;
+      text-align: center;
+      background: linear-gradient(135deg, #81ecec, #ffeaa7);
+      color: #2d3436;
+      min-height: 100vh;
+      margin: 0;
+      padding: 10px;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    h2 {
+      font-size: 36px;
+      color: #0984e3;
+      text-shadow: 2px 2px 0px white;
+      margin-bottom: 30px;
+    }
+
+    h3 {
+      font-size: 28px;
+      color: #0984e3;
+      margin-top: 40px;
+    }
+
+    button {
+      margin: 10px;
+      padding: 12px 24px;
+      font-size: 22px;
+      font-weight: bold;
+      color: white;
+      background-color: #00cec9;
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 5px 0px #01a3a4;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    button:active {
+      transform: translateY(5px);
+      box-shadow: none;
+    }
+
+    .rules {
+      background-color: white;
+      border-radius: 20px;
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto 30px auto;
+      text-align: left;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      border: 4px solid #00cec9;
+    }
+
+    .rules h3 {
+      margin-top: 0;
+      text-align: center;
+      font-size: 24px;
+    }
+
+    .rules ul {
+      font-size: 20px;
+      line-height: 2.2;
+      padding-left: 25px;
+      margin-bottom: 0;
+    }
+
+    rt {
+      font-size: 12px;
+      color: #0984e3;
+      font-weight: bold;
+    }
+
+    #game {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin: 20px auto;
+      max-width: 450px;
+    }
+
+    .card {
+      width: 100px;
+      height: 100px;
+      perspective: 600px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .inner {
+      width: 100%;
+      height: 100%;
+      transition: .5s;
+      transform-style: preserve-3d;
+    }
+
+    .flipped {
+      transform: rotateY(180deg);
+    }
+
+    .front,
+    .back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 20px;
+      backface-visibility: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .front {
+      background: #fdcb6e;
+    }
+
+    .front::after {
+      content: '🌟';
+      font-size: 50px;
+    }
+
+    .back {
+      background: white;
+      transform: rotateY(180deg);
+      border: 4px solid #00cec9;
+      box-sizing: border-box;
+    }
+
+    #stage {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .piece {
+      width: 80px;
+      height: 80px;
+      position: absolute;
+      transition: 0.8s;
+    }
+
+    .plate {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 20px;
+      /* 角が丸い四角 */
+      background-color: #ffffff;
+      /* 白色のトレイ */
+      border: 4px solid #ffeaa7;
+      /* 優しい黄色の縁取り */
+      box-sizing: border-box;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .circle {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      /* 少しバウンドする滑らかな回転 */
+    }
+
+    .label {
+      position: absolute;
+      width: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      text-align: center;
+      font-weight: bold;
+      font-size: 24px;
+      color: #2d3436;
+      text-shadow: 1px 1px 0px white, -1px -1px 0px white, 1px -1px 0px white, -1px 1px 0px white;
+    }
+
+    /* removed center class as we use dynamic js coordinates */
+
+    #result {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .result-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: white;
+      padding: 15px;
+      border-radius: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border: 4px solid #fdcb6e;
+    }
+
+    .formula {
+      font-size: 26px;
+      font-weight: bold;
+      color: #0984e3;
+      margin-top: 15px;
+    }
+
+    #timer {
+      font-size: 28px;
+      font-weight: bold;
+      color: #2d3436;
+      margin-top: 10px;
+      font-family: monospace;
+    }
+
+    #msg {
+      margin-top: 20px;
+      font-size: 36px;
+      font-weight: bold;
+      color: #d63031;
+      height: 40px;
+      text-shadow: 2px 2px 0px white;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        width: 80px;
+        height: 80px;
+      }
+
+      .rules h3 {
+        font-size: 20px;
+      }
+
+      .rules ul {
+        font-size: 16px;
+        line-height: 1.8;
+      }
+
+      h2 {
+        font-size: 26px;
+        margin-bottom: 15px;
+      }
+
+      button {
+        font-size: 16px;
+        padding: 10px 16px;
+        margin: 5px;
+      }
+
+      .rules {
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+
+      #game {
+        gap: 8px;
+        max-width: 360px;
+        margin: 15px auto;
+      }
+    }
+
+    /* Tutorial Overlay */
+    #tutorial-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      /* No more dark background */
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 50px;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .tutorial-box {
+      pointer-events: auto;
+      background: white;
+      padding: 20px 30px;
+      border-radius: 25px;
+      max-width: 80%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      border: 4px solid #00cec9;
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes popIn {
+      0% {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .tutorial-box p {
+      font-size: 22px;
+      font-weight: bold;
+      color: #2d3436;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .tutorial-btn-container {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .tutorial-btn-skip {
+      background-color: #b2bec3 !important;
+      box-shadow: 0 5px 0px #636e72 !important;
+      font-size: 18px !important;
+    }
+
+    /* Highlight pulse for tutorial */
+    .highlight-pulse {
+      box-shadow: 0 0 0 0 rgba(9, 132, 227, 1);
+      animation: pulse-border 1.5s infinite;
+      z-index: 10;
+    }
+
+    @keyframes pulse-border {
+      0% {
+        box-shadow: 0 0 0 0 rgba(9, 132, 227, 0.7);
+      }
+
+      70% {
+        box-shadow: 0 0 0 20px rgba(9, 132, 227, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(9, 132, 227, 0);
+      }
+    }
+
+    .tutorial-box h4 {
+      font-size: 28px;
+      color: #0984e3;
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    /* Hint Bar */
+    #hint-bar {
+      position: fixed;
+      top: 150px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 10px 20px;
+      border-radius: 50px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      z-index: 900;
+      border: 3px solid #74b9ff;
+      animation: slideDown 0.4s ease-out;
+      pointer-events: none;
+    }
+
+    .hint-gauge {
+      width: 100px;
+      height: 15px;
+      background: #dfe6e9;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hint-fill {
+      height: 100%;
+      background: #74b9ff;
+      transition: width 0.3s;
+    }
+
+    .hint-target {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100%;
+      background: #fab1a0;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 0.3;
+      }
+
+      50% {
+        opacity: 0.8;
+      }
+    }
+
+    /* Success Formula Popup */
+    #formula-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .formula-card {
+      background: white;
+      padding: 40px;
+      border-radius: 30px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .formula-text {
+      font-size: 48px;
+      font-weight: bold;
+      color: #2d3436;
+      margin-bottom: 20px;
+    }
+
+    /* Shake for wrong selection */
+    .shake {
+      animation: shake 0.5s both;
+    }
+
+    @keyframes shake {
+
+      10%,
+      90% {
+        transform: translate3d(-1px, 0, 0);
+      }
+
+      20%,
+      80% {
+        transform: translate3d(2px, 0, 0);
+      }
+
+      30%,
+      50%,
+      70% {
+        transform: translate3d(-4px, 0, 0);
+      }
+
+      40%,
+      60% {
+        transform: translate3d(4px, 0, 0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translate(-50%, -100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+      }
+    }
+
+    /* Hide timer in practice */
+    .hide-timer #timer {
+      visibility: hidden;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>🎂 ケーキでピッタリ！</h2>
+
+  <div class="rules">
+    <h3><ruby>使<rt>つか</rt></ruby>い<ruby>方<rt>かた</rt></ruby>とルール</h3>
+    <ul>
+      <li>カードを２<ruby>枚<rt>まい</rt></ruby>めくって、<ruby>足<rt>た</rt></ruby>して「１」になる<ruby>分数<rt>ぶんすう</rt></ruby>のペアをさがそう！</li>
+      <li>ピッタリ「１」になると、ケーキが<ruby>完成<rt>かんせい</rt></ruby>するよ🍰</li>
+      <li><ruby>全部<rt>ぜんぶ</rt></ruby>のケーキを<ruby>完成<rt>かんせい</rt></ruby>させたらクリア！</li>
+      <li>ペアの<ruby>数<rt>かず</rt></ruby>をえらんで、いろんな<ruby>難<rt>むずか</rt></ruby>しさに<ruby>挑戦<rt>ちょうせん</rt></ruby>してね🌟</li>
+    </ul>
+  </div>
+
+  <div>
+    <button onclick="gameAction('PRACTICE')" style="background-color: #a29bfe; box-shadow: 0 5px 0px #6c5ce7;">🎓
+      れんしゅう</button>
+    <button onclick="gameAction('SET_LEVEL', 3)">🌟 3ペア</button>
+    <button onclick="gameAction('SET_LEVEL', 5)">🌟 5ペア</button>
+    <button onclick="gameAction('SET_LEVEL', 8)">🌟 8ペア</button>
+
+    <br><br>
+    <button onclick="gameAction('START')" style="background-color: #55efc4; box-shadow: 0 5px 0px #00b894;">▶️
+      スタート</button>
+    <button onclick="gameAction('RESET')" style="background-color: #ff7675; box-shadow: 0 5px 0px #d63031;">🔄
+      リセット</button>
+  </div>
+
+  <div id="tutorial-overlay" style="display: none;">
+    <div class="tutorial-box">
+      <h4 id="tutorial-title"></h4>
+      <p id="tutorial-text"></p>
+      <div class="tutorial-btn-container" id="tutorial-btns">
+        <!-- Dynamic buttons -->
+      </div>
+    </div>
+  </div>
+
+
+
+  <div id="formula-overlay">
+    <div class="formula-card">
+      <div id="formula-display" class="formula-text"></div>
+      <button onclick="gameAction('CLOSE_FORMULA')"
+        style="background-color: #55efc4; box-shadow: 0 5px 0px #00b894;">つぎへ！</button>
+    </div>
+  </div>
+
+  <div id="timer">00:00</div>
+  <div id="game"></div>
+  <div id="stage"></div>
+  <div id="msg"></div>
+
+  <h3>できたケーキ</h3>
+  <div id="result"></div>
+
+  <script>
+    // ==========================================
+    // 1. CONSTANTS & DATA
+    // ==========================================
+    const GameMode = {
+      NORMAL: 'NORMAL',
+      TUTORIAL: 'TUTORIAL'
+    };
+
+    const TutorialPhase = {
+      DEMO: 'DEMO',
+      GUIDE: 'GUIDE',
+      FREE: 'FREE'
+    };
+
+    const GameState = {
+      READY: 'READY',
+      IDLE: 'IDLE',
+      CHECKING: 'CHECKING',
+      ANIMATING: 'ANIMATING',
+      RESETTING: 'RESETTING'
+    };
+
+    const ActionTypes = {
+      SET_LEVEL: 'SET_LEVEL',
+      START_GAME: 'START_GAME',
+      START_TUTORIAL: 'START_TUTORIAL',
+      SET_TUTORIAL_PHASE: 'SET_TUTORIAL_PHASE',
+      SKIP_TUTORIAL: 'SKIP_TUTORIAL',
+      FLIP_CARD: 'FLIP_CARD',
+      EVALUATE_MATCH: 'EVALUATE_MATCH',
+      MATCH_SUCCESS: 'MATCH_SUCCESS',
+      MATCH_FAIL: 'MATCH_FAIL',
+      TICK_TIMER: 'TICK_TIMER',
+      SHOW_FORMULA: 'SHOW_FORMULA'
+    };
+
+    // --- Utilities ---
+    const getFractionLabel = (v) => {
+      if (Math.abs(v - 0.5) < 0.01) return "1/2";
+      if (Math.abs(v - 0.33) < 0.01) return "1/3";
+      if (Math.abs(v - 0.66) < 0.01) return "2/3";
+      if (Math.abs(v - 0.25) < 0.01) return "1/4";
+      if (Math.abs(v - 0.75) < 0.01) return "3/4";
+      if (Math.abs(v - 0.2) < 0.01) return "1/5";
+      if (Math.abs(v - 0.4) < 0.01) return "2/5";
+      if (Math.abs(v - 0.6) < 0.01) return "3/5";
+      if (Math.abs(v - 0.8) < 0.01) return "4/5";
+      return "";
+    };
+
+    const TUTORIAL_CONFIG = {
+      [TutorialPhase.DEMO]: {
+        title: "Step A: やってみよう！",
+        getMsg: (step) => step === 1 ? "まずは<ruby>青<rt>あお</rt></ruby>く<ruby>光<rt>ひか</rt></ruby>っているカードを<ruby>選<rt>えら</rt></ruby>んでみてね！" : "もう1<ruby>枚<rt>まい</rt></ruby>！ピッタリになるかな？",
+        successMsg: "すごい！これがケーキ<ruby>作<rt>づく</rt></ruby>りの<ruby>基本<rt>きほん</rt></ruby>だよ。",
+        nextPhase: TutorialPhase.GUIDE,
+        nextBtnText: "つぎへ！"
+      },
+      [TutorialPhase.GUIDE]: {
+        title: "Step B: ガイドつき<ruby>練習<rt>れんしゅう</rt></ruby>",
+        getMsg: (step) => step === 1 ? "こんどは<ruby>自分<rt>じぶん</rt></ruby>でえらんでみよう。<ruby>青<rt>あお</rt></ruby>い<ruby>光<rt>ひかり</rt></ruby>がヒントだよ！" : "ケーキがピッタリになるカードをさがしてね！",
+        successMsg: "バッチリ！だいぶなれてきたね。",
+        nextPhase: TutorialPhase.FREE,
+        nextBtnText: "<ruby>自由<rt>じゆう</rt></ruby>に<ruby>練習<rt>れんしゅう</rt></ruby>！"
+      },
+      [TutorialPhase.FREE]: {
+        title: "Step C: <ruby>自由<rt>じゆう</rt></ruby>に<ruby>練習<rt>れんしゅう</rt></ruby>",
+        getMsg: () => "どれくらいケーキが<ruby>足<rt>た</rt></ruby>りないか<ruby>考<rt>かんが</rt></ruby>えて、どんどん<ruby>作<rt>つく</rt></ruby>ってみよう！",
+        successMsg: "これでケーキ<ruby>作<rt>づく</rt></ruby>りの<ruby>名人<rt>めいじん</rt></ruby>だね！",
+        nextPhase: null,
+        nextBtnText: "<ruby>本番<rt>ほんばん</rt></ruby>スタート！"
+      }
+    };
+
+    const pairsData = [
+      [{ v: 1 / 2, l: "1/2" }, { v: 1 / 2, l: "1/2" }],
+      [{ v: 1 / 3, l: "1/3" }, { v: 2 / 3, l: "2/3" }],
+      [{ v: 1 / 4, l: "1/4" }, { v: 3 / 4, l: "3/4" }],
+      [{ v: 1 / 5, l: "1/5" }, { v: 4 / 5, l: "4/5" }],
+      [{ v: 1 / 6, l: "1/6" }, { v: 5 / 6, l: "5/6" }],
+      [{ v: 2 / 5, l: "2/5" }, { v: 3 / 5, l: "3/5" }],
+      [{ v: 1 / 8, l: "1/8" }, { v: 7 / 8, l: "7/8" }],
+      [{ v: 3 / 8, l: "3/8" }, { v: 5 / 8, l: "5/8" }]
+    ];
+    const pieceColors = ["#ff9a9e", "#8d5524", "#badc58", "#ffbe76", "#a29bfe", "#f6e58d", "#7bed9f", "#ff7979"];
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function createDeck(level, isPractice = false) {
+      const shuffledPairs = shuffleArray(pairsData);
+      const selectedPairs = isPractice ? shuffledPairs.slice(0, 2) : shuffledPairs.slice(0, level);
+      let deck = [];
+      const flatCards = selectedPairs.flat();
+
+      flatCards.forEach((item, flatIndex) => {
+        const pairIndex = Math.floor(flatIndex / 2);
+        deck.push({
+          id: `pair-${pairIndex}-item-${flatIndex % 2}`,
+          v: item.v,
+          l: item.l,
+          color: pieceColors[flatIndex % pieceColors.length],
+          isCleared: false,
+          isFlipped: false
+        });
+      });
+      return isPractice ? deck : shuffleArray(deck);
+    }
+
+    // ==========================================
+    // 2. STORE (State & Reducer)
+    // ==========================================
+    let state = {
+      level: 3,
+      mode: GameMode.NORMAL,
+      tutorialPhase: null,
+      tutorialStep: 0,
+      status: GameState.READY,
+      cards: [],
+      flipped: { first: null, second: null },
+      elapsedSeconds: 0,
+      isGameCleared: false,
+      lastMatchedPair: null,
+      showFormula: null,
+      shakeCardId: null
+    };
+
+    function gameReducer(currentState, action) {
+      switch (action.type) {
+        case ActionTypes.SET_LEVEL:
+          return {
+            ...currentState,
+            level: action.payload,
+            mode: GameMode.NORMAL,
+            tutorialPhase: null,
+            tutorialStep: 0,
+            status: GameState.READY,
+            cards: createDeck(action.payload),
+            flipped: { first: null, second: null },
+            elapsedSeconds: 0,
+            isGameCleared: false,
+            lastMatchedPair: null,
+            showFormula: null,
+            shakeCardId: null
+          };
+
+        case ActionTypes.START_TUTORIAL:
+          return {
+            ...currentState,
+            mode: GameMode.TUTORIAL,
+            tutorialPhase: TutorialPhase.DEMO,
+            tutorialStep: 1,
+            status: GameState.IDLE,
+            cards: createDeck(2, true),
+            flipped: { first: null, second: null },
+            elapsedSeconds: 0,
+            isGameCleared: false,
+            lastMatchedPair: null,
+            showFormula: null,
+            shakeCardId: null
+          };
+
+        case ActionTypes.SET_TUTORIAL_PHASE:
+          return {
+            ...currentState,
+            tutorialPhase: action.payload,
+            tutorialStep: 1,
+            status: GameState.IDLE,
+            cards: createDeck(2, true),
+            flipped: { first: null, second: null },
+            isGameCleared: false,
+            lastMatchedPair: null,
+            showFormula: null,
+            shakeCardId: null
+          };
+
+        case ActionTypes.SKIP_TUTORIAL:
+          return {
+            ...currentState,
+            mode: GameMode.NORMAL,
+            tutorialPhase: null,
+            tutorialStep: 0,
+            status: GameState.READY,
+            cards: createDeck(currentState.level),
+            flipped: { first: null, second: null },
+            elapsedSeconds: 0,
+            isGameCleared: false,
+            lastMatchedPair: null,
+            showFormula: null,
+            shakeCardId: null
+          };
+
+        case ActionTypes.START_GAME:
+          if (currentState.status !== GameState.READY) return currentState;
+          return { ...currentState, status: GameState.IDLE, elapsedSeconds: 0 };
+
+        case ActionTypes.TICK_TIMER:
+          if (currentState.status === GameState.READY || currentState.isGameCleared || currentState.mode === GameMode.TUTORIAL) return currentState;
+          return { ...currentState, elapsedSeconds: currentState.elapsedSeconds + 1 };
+
+        case ActionTypes.FLIP_CARD: {
+          if (currentState.status !== GameState.IDLE) return currentState;
+          const cardId = action.payload;
+          const card = currentState.cards.find(c => c.id === cardId);
+          if (!card || card.isCleared || card.isFlipped) return currentState;
+
+          // Tutorial Restrictions
+          if (currentState.mode === GameMode.TUTORIAL) {
+            const uncleared = currentState.cards.filter(c => !c.isCleared);
+            if (currentState.tutorialPhase === TutorialPhase.DEMO) {
+              if (currentState.tutorialStep === 1 && cardId !== uncleared[0].id) return currentState;
+              if (currentState.tutorialStep === 2 && cardId !== uncleared[1].id) return currentState;
+            } else if (currentState.tutorialPhase === TutorialPhase.GUIDE && currentState.flipped.first) {
+              const firstCard = currentState.cards.find(c => c.id === currentState.flipped.first);
+              const isMatch = Math.abs(firstCard.v + card.v - 1) < 0.01;
+              if (!isMatch) return { ...currentState, shakeCardId: cardId };
+            }
+          }
+
+          const newCards = currentState.cards.map(c => c.id === cardId ? { ...c, isFlipped: true } : c);
+          let nextStep = currentState.tutorialStep;
+          if (currentState.mode === GameMode.TUTORIAL) {
+            if (currentState.tutorialStep === 1) nextStep = 2;
+            else if (currentState.tutorialStep === 2) nextStep = 3;
+          }
+
+          if (!currentState.flipped.first) {
+            return { ...currentState, status: GameState.IDLE, cards: newCards, flipped: { first: cardId, second: null }, tutorialStep: nextStep, shakeCardId: null };
+          } else {
+            return { ...currentState, status: GameState.CHECKING, cards: newCards, flipped: { ...currentState.flipped, second: cardId }, tutorialStep: nextStep, shakeCardId: null };
+          }
+        }
+
+        case ActionTypes.EVALUATE_MATCH: {
+          if (currentState.status !== GameState.CHECKING) return currentState;
+          const { first, second } = currentState.flipped;
+          const c1 = currentState.cards.find(c => c.id === first);
+          const c2 = currentState.cards.find(c => c.id === second);
+          const isMatch = Math.abs(c1.v + c2.v - 1) < 0.01;
+          return {
+            ...currentState,
+            status: isMatch ? GameState.ANIMATING : GameState.RESETTING,
+            lastMatchedPair: isMatch ? { a: c1, b: c2 } : null
+          };
+        }
+
+        case ActionTypes.MATCH_SUCCESS: {
+          const { first, second } = currentState.flipped;
+          const newCards = currentState.cards.map(c =>
+            (c.id === first || c.id === second) ? { ...c, isCleared: true } : c
+          );
+          const isCleared = newCards.every(c => c.isCleared);
+          const { a, b } = currentState.lastMatchedPair;
+          return {
+            ...currentState,
+            status: GameState.IDLE,
+            cards: newCards,
+            flipped: { first: null, second: null },
+            isGameCleared: isCleared,
+            showFormula: { a, b, text: `${a.l} + ${b.l} = 1` },
+            tutorialStep: currentState.mode === GameMode.TUTORIAL ? 1 : currentState.tutorialStep
+          };
+        }
+
+        case ActionTypes.MATCH_FAIL: {
+          const { first, second } = currentState.flipped;
+          const newCards = currentState.cards.map(c =>
+            (c.id === first || c.id === second) ? { ...c, isFlipped: false } : c
+          );
+          let nextStep = (currentState.mode === GameMode.TUTORIAL && currentState.tutorialPhase !== TutorialPhase.FREE) ? 1 : currentState.tutorialStep;
+          return { ...currentState, status: GameState.IDLE, cards: newCards, flipped: { first: null, second: null }, tutorialStep: nextStep };
+        }
+
+        case ActionTypes.SHOW_FORMULA:
+          return { ...currentState, showFormula: action.payload };
+
+        default:
+          return currentState;
+      }
+    }
+
+    function dispatch(action) {
+      const nextState = gameReducer(state, action);
+      if (nextState !== state) {
+        state = nextState;
+        viewRender(state);
+        handleEffects(state, action);
+      }
+    }
+
+    // ==========================================
+    // 3. EFFECTS (Side Effects & Orchestration)
+    // ==========================================
+    const effectTimers = {
+      timeouts: [],
+      gameInterval: null
+    };
+
+    function clearAllTimeouts() {
+      effectTimers.timeouts.forEach(clearTimeout);
+      effectTimers.timeouts = [];
+    }
+
+    function handleEffects(currentState, action) {
+      if (action.type === ActionTypes.SKIP_TUTORIAL ||
+        (action.type === ActionTypes.MATCH_SUCCESS && currentState.isGameCleared && currentState.tutorialPhase === TutorialPhase.FREE)) {
+        localStorage.setItem('hasPlayedTutorial', 'true');
+      }
+
+      if (action.type === ActionTypes.SET_LEVEL) {
+        clearAllTimeouts();
+        if (effectTimers.gameInterval) clearInterval(effectTimers.gameInterval);
+      }
+
+      if (action.type === ActionTypes.START_GAME && currentState.mode === GameMode.NORMAL) {
+        if (effectTimers.gameInterval) clearInterval(effectTimers.gameInterval);
+        effectTimers.gameInterval = setInterval(() => dispatch({ type: ActionTypes.TICK_TIMER }), 1000);
+      }
+
+      if (action.type === ActionTypes.MATCH_SUCCESS && currentState.isGameCleared) {
+        if (effectTimers.gameInterval) clearInterval(effectTimers.gameInterval);
+      }
+
+      if (action.type === ActionTypes.FLIP_CARD && currentState.status === GameState.CHECKING) {
+        const tid = setTimeout(() => dispatch({ type: ActionTypes.EVALUATE_MATCH }), 600);
+        effectTimers.timeouts.push(tid);
+      }
+
+      if (action.type === ActionTypes.EVALUATE_MATCH) {
+        if (currentState.status === GameState.ANIMATING) {
+          viewTriggerMatchAnimation(currentState.lastMatchedPair.a, currentState.lastMatchedPair.b, () => {
+            dispatch({ type: ActionTypes.MATCH_SUCCESS });
+          });
+        } else if (currentState.status === GameState.RESETTING) {
+          const tid = setTimeout(() => dispatch({ type: ActionTypes.MATCH_FAIL }), 1200);
+          effectTimers.timeouts.push(tid);
+        }
+      }
+    }
+
+    function formatTime(seconds) {
+      if (typeof seconds !== 'number') return "00:00";
+      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const s = (seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function renderTutorialUI(state) {
+      const overlay = document.getElementById("tutorial-overlay");
+      if (!overlay) return;
+
+      if (state.mode !== GameMode.TUTORIAL) {
+        overlay.style.display = "none";
+        return;
+      }
+
+      const config = TUTORIAL_CONFIG[state.tutorialPhase];
+      if (config) {
+        overlay.style.display = "flex";
+        const titleEl = document.getElementById("tutorial-title");
+        const textEl = document.getElementById("tutorial-text");
+        const btnsEl = document.getElementById("tutorial-btns");
+
+        if (titleEl) titleEl.innerHTML = config.title;
+        if (textEl) {
+          textEl.innerHTML = (state.isGameCleared && !state.showFormula) ? config.successMsg : config.getMsg(state.tutorialStep);
+        }
+
+        if (btnsEl) {
+          btnsEl.innerHTML = "";
+          if (state.isGameCleared && !state.showFormula) {
+            const btn = document.createElement("button");
+            btn.innerHTML = config.nextBtnText;
+            btn.onclick = () => config.nextPhase ? gameAction('SET_PHASE', config.nextPhase) : gameAction('SKIP');
+            btnsEl.appendChild(btn);
+          } else {
+            const skip = document.createElement("button");
+            skip.className = "tutorial-btn-skip";
+            skip.textContent = "スキップ";
+            skip.onclick = () => gameAction('SKIP');
+            btnsEl.appendChild(skip);
+          }
+        }
+      }
+
+
+    }
+
+    function renderCards(state) {
+      const gameContainer = document.getElementById("game");
+      if (!gameContainer) return;
+
+      const existingIds = Array.from(gameContainer.children).map(child => child.id);
+      const stateIds = state.cards.map(c => c.id);
+      const needsFullRender = existingIds.length !== stateIds.length || !stateIds.every(id => existingIds.includes(id));
+
+      if (needsFullRender) {
+        gameContainer.innerHTML = "";
+        state.cards.forEach(c => {
+          const el = document.createElement("div");
+          el.className = "card";
+          el.id = c.id;
+          el.innerHTML = `<div class="inner"><div class="front"></div><div class="back"></div></div>`;
+          el.onclick = () => dispatch({ type: ActionTypes.FLIP_CARD, payload: c.id });
+          gameContainer.appendChild(el);
+        });
+      }
+
+      state.cards.forEach(c => {
+        const el = document.getElementById(c.id);
+        if (!el) return;
+        const inner = el.querySelector(".inner");
+        if (inner) {
+          el.classList.toggle("highlight-pulse", isHighlightCandidate(state, c));
+          el.classList.toggle("shake", state.shakeCardId === c.id);
+          inner.classList.toggle("flipped", c.isFlipped);
+        }
+        el.style.visibility = c.isCleared ? "hidden" : "visible";
+      });
+    }
+
+    function isHighlightCandidate(state, card) {
+      if (state.mode !== GameMode.TUTORIAL || card.isCleared) return false;
+      const uncleared = state.cards.filter(c => !c.isCleared);
+      if (uncleared.length === 0) return false;
+
+      if (state.tutorialPhase === TutorialPhase.DEMO) {
+        return (state.tutorialStep === 1 && card.id === (uncleared[0]?.id)) ||
+          (state.tutorialStep === 2 && card.id === (uncleared[1]?.id));
+      }
+      if (state.tutorialPhase === TutorialPhase.GUIDE) {
+        if (state.tutorialStep === 1) return true;
+        if (state.tutorialStep === 2 && state.flipped.first) {
+          const first = state.cards.find(c => c.id === state.flipped.first);
+          return first && Math.abs(first.v + card.v - 1) < 0.01;
+        }
+      }
+      return false;
+    }
+
+    function renderPieces(state) {
+      const stage = document.getElementById("stage");
+      if (!stage) return;
+      state.cards.forEach(c => {
+        const pid = `piece-${c.id}`;
+        let pEl = document.getElementById(pid);
+        if (c.isFlipped && !c.isCleared) {
+          if (!pEl) {
+            const cardEl = document.getElementById(c.id);
+            if (cardEl) {
+              const rect = cardEl.getBoundingClientRect();
+              pEl = document.createElement("div");
+              pEl.className = "piece";
+              pEl.id = pid;
+              pEl.style.left = (rect.left + (rect.width - 80) / 2) + "px";
+              pEl.style.top = (rect.top + (rect.height - 80) / 2) + "px";
+              const deg = c.v * 360;
+              pEl.innerHTML = `<div class="circle" style="background: conic-gradient(${c.color} ${deg}deg, transparent ${deg}deg); transform: rotate(-90deg);"></div><div class="label">${c.l}</div>`;
+              stage.appendChild(pEl);
+            }
+          }
+        } else if (pEl) {
+          pEl.remove();
+        }
+      });
+    }
+
+    function renderResults(state) {
+      const resultContainer = document.getElementById("result");
+      if (!resultContainer) return;
+      const clearedPairsCount = state.cards.filter(c => c.isCleared).length / 2;
+
+      if (resultContainer.children.length < clearedPairsCount && state.lastMatchedPair && state.status === GameState.IDLE) {
+        const { a, b } = state.lastMatchedPair;
+        const item = document.createElement("div");
+        item.className = "result-item";
+        const deg = a.v * 360;
+        item.innerHTML = `
+          <div style="position:relative; width:80px; height:80px;">
+            <div class="plate" style="width:110px; height:110px;"></div>
+            <div class="circle" style="position:absolute; top:0; left:0; background: conic-gradient(${a.color} ${deg}deg, ${b.color} ${deg}deg);"></div>
+            <div style="position:absolute; width:24px; height:24px; background:radial-gradient(circle at 30% 30%, #ff7979, #eb2f06); border-radius:50%; top:50%; left:50%; transform:translate(-50%, -50%); box-shadow:2px 2px 5px rgba(0,0,0,0.3); z-index:5;"></div>
+          </div>
+          <div class="formula">${a.l} + ${b.l} = 1</div>
+        `;
+        resultContainer.appendChild(item);
+      } else if (clearedPairsCount === 0) {
+        resultContainer.innerHTML = "";
+      }
+    }
+
+    function viewRender(state) {
+      document.body.classList.toggle("hide-timer", state.mode === GameMode.TUTORIAL);
+      const timerEl = document.getElementById("timer");
+      if (timerEl) timerEl.textContent = formatTime(state.elapsedSeconds);
+
+      renderTutorialUI(state);
+      renderCards(state);
+      renderPieces(state);
+      renderResults(state);
+
+      const formulaOverlay = document.getElementById("formula-overlay");
+      if (formulaOverlay) {
+        if (state.showFormula) {
+          formulaOverlay.style.display = "flex";
+          const display = document.getElementById("formula-display");
+          if (display) display.innerHTML = state.showFormula.text;
+        } else {
+          formulaOverlay.style.display = "none";
+        }
+      }
+
+      const msgEl = document.getElementById("msg");
+      if (msgEl) {
+        if (state.status === GameState.READY) msgEl.innerHTML = "▶️ スタートを<ruby>押<rt>お</rt></ruby>してね！";
+        else if (state.status === GameState.ANIMATING) msgEl.innerHTML = "🎉 ぴったり！";
+        else if (state.status === GameState.RESETTING) msgEl.innerHTML = "😊 おしい！";
+        else if (state.isGameCleared && state.mode === GameMode.NORMAL) {
+          msgEl.innerHTML = `🌟 クリア！ <ruby>記録<rt>きろく</rt></ruby>: ${formatTime(state.elapsedSeconds)}`;
+        } else {
+          msgEl.innerHTML = "";
+        }
+      }
+    }
+
+    function viewTriggerMatchAnimation(a, b, onComplete) {
+      const gameContainer = document.getElementById("game");
+      if (!gameContainer) { onComplete(); return; }
+      const gameRect = gameContainer.getBoundingClientRect();
+      const targetX = gameRect.left + gameRect.width / 2;
+      const targetY = gameRect.top + gameRect.height / 2;
+
+      const stage = document.getElementById("stage");
+      const centerBase = document.createElement("div");
+      centerBase.className = "plate";
+      centerBase.style.width = "120px"; centerBase.style.height = "120px";
+      centerBase.style.position = "absolute"; centerBase.style.zIndex = "1";
+      centerBase.style.left = targetX + "px"; centerBase.style.top = targetY + "px";
+      if (stage) stage.prepend(centerBase);
+
+      const p1 = document.getElementById(`piece-${a.id}`);
+      const p2 = document.getElementById(`piece-${b.id}`);
+      [p1, p2].forEach(p => {
+        if (!p) return;
+        p.style.zIndex = "2"; p.style.left = targetX + "px"; p.style.top = targetY + "px";
+        p.style.transform = "translate(-50%, -50%)";
+      });
+
+      const tid1 = setTimeout(() => {
+        if (p2) {
+          const circle = p2.querySelector('.circle');
+          if (circle) circle.style.transform = `rotate(${(a.v * 360) - 90}deg)`;
+        }
+      }, 800);
+      const tid2 = setTimeout(() => { if (centerBase.parentNode) centerBase.remove(); onComplete(); }, 1500);
+      effectTimers.timeouts.push(tid1, tid2);
+    }
+
+    // --- Controller ---
+    function gameAction(action, payload) {
+      switch (action) {
+        case 'START': dispatch({ type: ActionTypes.START_GAME }); break;
+        case 'PRACTICE': dispatch({ type: ActionTypes.START_TUTORIAL }); break;
+        case 'SET_PHASE': dispatch({ type: ActionTypes.SET_TUTORIAL_PHASE, payload }); break;
+        case 'SKIP': dispatch({ type: ActionTypes.SKIP_TUTORIAL }); break;
+        case 'SET_LEVEL': dispatch({ type: ActionTypes.SET_LEVEL, payload }); break;
+        case 'CLOSE_FORMULA': dispatch({ type: ActionTypes.SHOW_FORMULA, payload: null }); break;
+        case 'RESET': init(); break;
+      }
+    }
+
+    function init() {
+      dispatch({ type: ActionTypes.SET_LEVEL, payload: state.level });
+      if (!localStorage.getItem('hasPlayedTutorial')) {
+        gameAction('PRACTICE');
+      }
+    }
+
+    init();
+  </script>
+
+</body>
+
+</html>
